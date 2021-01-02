@@ -3,7 +3,6 @@ package com.project.delivery.order;
 import com.project.delivery.member.Member;
 import com.project.delivery.member.MemberRepository;
 import com.project.delivery.member.MemoryMemberRepository;
-import org.graalvm.compiler.core.common.type.ArithmeticOpTable;
 
 public class OrderServiceImpl implements OrderService {
 
