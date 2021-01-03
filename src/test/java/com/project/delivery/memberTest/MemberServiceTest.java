@@ -1,16 +1,24 @@
 package com.project.delivery.memberTest;
 
+import com.project.delivery.AppConfig;
 import com.project.delivery.member.*;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.*;
 
 public class MemberServiceTest {
 
-    MemberService memberService = new MemberServiceImpl(new MemoryMemberRepository());
+    private MemberService memberService;
+
+    @BeforeEach
+    public void setUp(){
+        AppConfig appConfig = new AppConfig();
+        memberService = appConfig.memberService();
+    }
 
     @Test
-    void join(){
+    public void join(){
         // given
         Member member = new Member(1L,"Enzo", Grade.VIP);
 
