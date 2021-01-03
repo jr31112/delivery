@@ -121,3 +121,64 @@ public class OrderServiceImpl implements OrderService {
 ```
 
 이 문제를 해결하려면 누군가가 클라이언트인 `OrderServiceImpl` 에 `DiscountPolicy` 의 구현 객체를 대신 생성하고 주입해주어야 한다.
+
+
+
+## AppConfig 를 활용한 해결
+
+애플리케이션의 전체 동작 방식을 구성(config)하기 위해, 구현 객체를 생성하고, 연결하는 책임을 가지는 별도의 설정 클래스를 이용하여 관심사를 분리하고 주입하게 한다.
+
+생성자 주입 방법을 이용해 해결
+
+* `MemberRepository` 인터페이스만 의존한다.
+* `MemberServiceImpl` 입장에서 생성자를 통해 어떤 구현 객체가 들어올지(주입될지)는 알 수 없다.
+* `MemberServiceImpl` 의 생성자를 통해서 어떤 구현 객체를 주입할지는 오직 외부(`AppConfig`)에서 결정된다.
+* `MemberServiceImpl` 은 이제부터 의존관계에 대한 고민은 외부에 맡기고 실행에만 집중하면 된다.
+
+```java
+public class MemberServiceImpl implements MemberService {
+    private final MemberRepository memberRepository;
+    
+    public MemberServiceImpl(MemberRepository memberRepository) {
+   		this.memberRepository = memberRepository;
+    }
+    
+    public void join(Member member) {
+    	memberRepository.save(member);
+    }
+    
+    public Member findMember(Long memberId) {
+    	return memberRepository.findById(memberId);
+    }
+}
+```
+
+![image-20210103174151577](./dist/의존성 주입.jpg)
+
+* 객체의 생성과 연결은 `AppConfig` 가 담당한다.
+* DIP 완성: `MemberServiceImpl` 은 `MemberRepository` 인 추상에만 의존하면 된다. 이제 구체 클래스를 몰라도 된다.
+* 관심사의 분리: 객체를 생성하고 연결하는 역할과 실행하는 역할이 명확히 분리되었다.
+* `appConfig` 객체는 `memoryMemberRepository` 객체를 생성하고 그 참조값
+* `MemberServiceImpl`을 생성하면서 생성자로 전달한다.
+* 클라이언트인 memberServiceImpl 입장에서 보면 의존관계를 마치 외부에서 주입해주는 것 같다고 해서 `DI`(Dependency Injection) 우리말로 의존관계 주입 또는 의존성 주입이라 한다.
+
+
+
+* `AppConfig`는 애플리케이션의 실제 동작에 필요한 구현 객체를 생성한다.
+  * `MemberServiceImpl`
+  * `MemoryMemberRepository`
+  * `OrderServiceImpl`
+  * `FixDiscountPolicy`
+* `AppConfig`는 생성한 객체 인스턴스의 참조(레퍼런스)를 생성자를 통해서 주입(연결)해준다.
+  * `MemberServiceImpl` -> `MemoryMemberRepository`
+  * `OrderServiceImpl` -> `MemoryMemberRepository` , `FixDiscountPolicy`
+
+
+
+## 리펙토링
+
+중복 코드를 제거하고 역할에 따른 구현을 하기 위해 진행
+
+아래 그림의 모든 모습을 한눈에 보여줘야 하며 각 기능에 대해 중복이 없어야함.
+
+![image-20210103175923851](./dist/AppConfig_Refactoring.jpg)
