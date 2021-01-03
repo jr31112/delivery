@@ -8,8 +8,13 @@ import static org.assertj.core.api.Assertions.*;
 
 public class OrderServiceTest {
 
-    private final MemberService memberService = new MemberServiceImpl();
-    private final OrderService orderService = new OrderServiceImpl();
+    private final MemberService memberService;
+    private final OrderService orderService;
+
+    public OrderServiceTest(MemberService memberService, OrderService orderService) {
+        this.memberService = memberService;
+        this.orderService = orderService;
+    }
 
     @Test
     void createOrderTest(){

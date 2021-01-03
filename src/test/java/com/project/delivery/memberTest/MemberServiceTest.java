@@ -1,16 +1,13 @@
 package com.project.delivery.memberTest;
 
-import com.project.delivery.member.Grade;
-import com.project.delivery.member.Member;
-import com.project.delivery.member.MemberService;
-import com.project.delivery.member.MemberServiceImpl;
+import com.project.delivery.member.*;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.*;
 
 public class MemberServiceTest {
 
-    MemberService memberService = new MemberServiceImpl();
+    MemberService memberService = new MemberServiceImpl(new MemoryMemberRepository());
 
     @Test
     void join(){

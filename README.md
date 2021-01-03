@@ -92,3 +92,32 @@
 
 # Member, Order Serivce 개발
 작성하는 코드에 대해서 
+
+
+
+# 지금 까지 코드의 문제점
+
+## DIP문제
+
+![image-20210103143500957](./dist/DIP위반.jpg)
+
+코드상으로 `OrderServiceImpl`이 `DiscountPolicy`를 의존하는 것이 아니라 `FixDiscountPolicy`, `RateDiscountPolicy`에 의존하여 구체(구현) 클래스를 의존하고 있다. -> DIP문제
+
+또한, 다음과 같이 코드가 구성될 경우 null point exception이 발생한다.
+
+```java
+public class OrderServiceImpl implements OrderService {
+
+    private final MemberRepository memberRepository = new MemoryMemberRepository();
+    private DiscountPolicy discountPolicy;
+
+    @Override
+    public Order createOrder(Long memberId, String itemName, int itemPrice) {
+        Member member = memberRepository.findById(memberId);
+        int discountPrice = discountPolicy.discount(member, itemPrice);
+        return new Order(memberId, itemName, itemPrice, discountPrice);
+    }
+}
+```
+
+이 문제를 해결하려면 누군가가 클라이언트인 `OrderServiceImpl` 에 `DiscountPolicy` 의 구현 객체를 대신 생성하고 주입해주어야 한다.

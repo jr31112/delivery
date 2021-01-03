@@ -17,10 +17,10 @@ public class RateDiscountPolicyTest {
         Member member = new Member(1L, "Enzo", Grade.VIP);
 
         // when
-        int discountPrice = discountPolicy.discount(member, 10000);
+        int discountPrice = discountPolicy.discount(member, 100000);
 
         // then
-        assertThat(discountPrice).isEqualTo(1000);
+        assertThat(discountPrice).isEqualTo(10000);
     }
 
     @Test
@@ -29,7 +29,7 @@ public class RateDiscountPolicyTest {
         Member member = new Member(1L, "Enzo", Grade.BASIC);
 
         // when
-        int discountPrice = discountPolicy.discount(member, 10000);
+        int discountPrice = discountPolicy.discount(member, 100000);
 
         // then
         assertThat(discountPrice).isEqualTo(0);
