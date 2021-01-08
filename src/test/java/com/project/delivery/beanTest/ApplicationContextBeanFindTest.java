@@ -18,4 +18,10 @@ public class ApplicationContextBeanFindTest {
         assertThat(memberService).isInstanceOf(MemberServiceImpl.class);
     }
 
+    @Test
+    public void findBeanByType(){
+        MemberService memberService = ac.getBean(MemberService.class);
+        assertThat(memberService).isInstanceOf(MemberServiceImpl.class);
+    }
+
 }
