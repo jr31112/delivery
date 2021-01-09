@@ -28,8 +28,7 @@ public class ApplicationContextSameBeanFindTest {
     @Test
     @DisplayName("타입으로 조회시 같은 타입이 둘 이상 있으면, 빈 이름을 지정하면 된다")
     void findBeanByName() {
-        MemberRepository memberRepository = ac.getBean("memberRepository1",
-                MemberRepository.class);
+        MemberRepository memberRepository = ac.getBean("memberRepository1", MemberRepository.class);
         assertThat(memberRepository).isInstanceOf(MemberRepository.class);
     }
 
@@ -39,8 +38,7 @@ public class ApplicationContextSameBeanFindTest {
         Map<String, MemberRepository> beansOfType =
                 ac.getBeansOfType(MemberRepository.class);
         for (String key : beansOfType.keySet()) {
-            System.out.println("key = " + key + " value = " +
-                    beansOfType.get(key));
+            System.out.println("key = " + key + " value = " + beansOfType.get(key));
         }
         System.out.println("beansOfType = " + beansOfType);
         assertThat(beansOfType.size()).isEqualTo(2);
