@@ -303,3 +303,78 @@ public class DeliveryApplication {
 스프링 빈은 `@Bean` 이 붙은 메서드의 명을 스프링 빈의 이름으로 사용한다. (`memberService`, `orderService`)
 이전에는 개발자가 필요한 객체를 `AppConfig` 를 사용해서 직접 조회했지만, 이제부터는 스프링 컨테이너를 통해서 필요한 스프링 빈(객체)를 찾아야 한다. 스프링 빈은 `applicationContext.getBean()`메서드를 사용해서 찾을 수 있다.
 기존에는 개발자가 직접 자바코드로 모든 것을 했다면 이제부터는 `스프링 컨테이너`에 객체를 `스프링 빈`으로 등록하고, 스프링 컨테이너에서 스프링 빈을 찾아서 사용하도록 변경되었다.
+
+
+
+# 빈 조회 방법
+
+스프링 컨테이너에서 스프링 빈을 찾는 가장 기본적인 조회 방법
+
+* `getBean(빈이름, 타입)`
+* `getBean(타입)`
+
+조회 대상 스프링 빈이 없으면 예외 발생
+
+* `NoSuchBeanDefinitionException`
+
+타입으로 조회시 같은 타입의 스프링 빈이 둘 이상이면 오류가 발생한다. 이때는 빈 이름을 지정하자.
+`ac.getBeansOfType()` 을 사용하면 해당 타입의 모든 빈을 조회할 수 있다.
+
+부모 타입으로 조회하면, 자식 타입도 함께 조회한다.
+
+## BeanFactory와 ApplicationContext
+
+### BeanFactory
+
+![image-20210110020255946](./dist/beanFactory.jpg)
+
+스프링 컨테이너의 최상위 인터페이스로 스프링 빈을 관리하고 조회하는 역할을 담당한다.
+getBean() 을 제공한다.
+지금까지 우리가 사용했던 대부분의 기능은 BeanFactory가 제공하는 기능이다.
+
+### ApplicationContext
+
+![image-20210110020510060](./dist/application_context.jpg)
+
+BeanFactory 기능을 모두 상속받아서 ApplicationContext는 빈 관리기능 + 편리한 부가 기능을 제공한다.
+
+BeanFactory나 ApplicationContext를 스프링 컨테이너라 한다.
+
+ApplicatonContext가 제공하는 부가기능
+
+* 메시지소스를 활용한 국제화 기능(예를 들어서 한국에서 들어면 한국어로, 영어권에서 들어오면 영어로 출력)
+* 환경변수
+  * 로컬, 개발, 운영등을 구분해서 처리
+* 애플리케이션 이벤트
+  * 이벤트를 발행하고 구독하는 모델을 편리하게 지원
+* 편리한 리소스 조회
+  * 파일, 클래스패스, 외부 등에서 리소스를 편리하게 조회
+
+정리
+ApplicationContext는 BeanFactory의 기능을 상속받는다.
+ApplicationContext는 빈 관리기능 + 편리한 부가 기능을 제공한다.
+BeanFactory를 직접 사용할 일은 거의 없다. 부가기능이 포함된 ApplicationContext를 사용한다.
+BeanFactory나 ApplicationContext를 스프링 컨테이너라 한다.
+
+## 다양한 설정 형식 지원 - 자바 코드, XML
+
+스프링 컨테이너는 다양한 형식의 설정 정보를 받아드릴 수 있게 유연하게 설계되어 있다.
+![image-20210110020826332](./dist/config.jpg)
+
+* `AnnotationConfigApplicationContext` 는 `AnnotatedBeanDefinitionReader` 를 사용해서`AppConfig.class`를 읽고 `BeanDefinition` 을 생성한다.
+* `GenericXmlApplicationContext` 는 `XmlBeanDefinitionReader` 를 사용해서 `appConfig.xml` 설정 정보를 읽고 `BeanDefinition` 을 생성한다.
+
+* 새로운 형식의 설정 정보가 추가되면, `XxxBeanDefinitionReader`를 만들어서 `BeanDefinition` 을 생성하면 된다.
+
+## BeanDefinition 살펴보기
+
+* `BeanClassName`: 생성할 빈의 클래스 명(자바 설정 처럼 팩토리 역할의 빈을 사용하면 없음)
+
+* `factoryBeanName`: 팩토리 역할의 빈을 사용할 경우 이름, 예) appConfig
+
+* `factoryMethodName`: 빈을 생성할 팩토리 메서드 지정, 예) memberService
+* `Scope`: 싱글톤(기본값)
+* `lazyInit` : 스프링 컨테이너를 생성할 때 빈을 생성하는 것이 아니라, 실제 빈을 사용할 때 까지 최대한 생성을 지연처리 하는지 여부
+* `InitMethodName`: 빈을 생성하고, 의존관계를 적용한 뒤에 호출되는 초기화 메서드 명
+* `DestroyMethodName` : 빈의 생명주기가 끝나서 제거하기 직전에 호출되는 메서드 명
+* `Constructor arguments`, `Properties`: 의존관계 주입에서 사용한다. (자바 설정 처럼 팩토리 역할의 빈을 사용하면 없음)
