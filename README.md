@@ -378,3 +378,6 @@ BeanFactory나 ApplicationContext를 스프링 컨테이너라 한다.
 * `InitMethodName`: 빈을 생성하고, 의존관계를 적용한 뒤에 호출되는 초기화 메서드 명
 * `DestroyMethodName` : 빈의 생명주기가 끝나서 제거하기 직전에 호출되는 메서드 명
 * `Constructor arguments`, `Properties`: 의존관계 주입에서 사용한다. (자바 설정 처럼 팩토리 역할의 빈을 사용하면 없음)
+
+# 싱글톤 컨테이너
+
