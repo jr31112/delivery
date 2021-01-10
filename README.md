@@ -597,3 +597,21 @@ ApplicationContext ac = new AnnotationConfigApplicationContext(AutoAppConfig.cla
   리를 한다.)
 
 해당 클래스의 소스 코드를 보면 `@Component` 를 포함하고 있는 것을 알 수 있다.
+
+
+
+## 필터
+
+>참고: `@Component`면 충분하기 때문에, `includeFilters`를 사용할 일은 거의 없다. `excludeFilters`는 여러가지 이유로 간혹 사용할 때가 있지만 많지는 않다.
+>특히 최근 스프링 부트는 컴포넌트 스캔을 기본으로 제공하는데, 개인적으로는 옵션을 변경하면서 사용하기보다는 스프링의 기본 설정에 최대한 맞추어 사용하는 것을 권장하고, 선호하는 편이다.
+
+`includeFilters` : 컴포넌트 스캔 대상을 추가로 지정한다.
+`excludeFilters` : 컴포넌트 스캔에서 제외할 대상을 지정한다.
+
+**필터 타입 옵션**
+
+* `ANNOTATION `: 기본값, 애노테이션을 인식해서 동작한다.(`org.example.SomeAnnotation`)
+* `SIGNABLE_TYPE` : 지정한 타입과 자식 타입을 인식해서 동작한다.(`org.example.SomeClass`)
+* `ASPECTJ` : AspectJ 패턴 사용(`org.example..*Service+*`)
+* `REGEX` : 정규 표현식(`org\.example\.Default.*`)
+* `CUSTOM` : TypeFilter 이라는 인터페이스를 구현해서 처리(`org.example.MyTypeFilter`)
