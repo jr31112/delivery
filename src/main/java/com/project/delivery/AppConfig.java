@@ -13,22 +13,26 @@ public class AppConfig {
 
     @Bean
     public MemberRepository memberRepository(){
+        System.out.println("member 저장소 등록");
         return new MemoryMemberRepository();
     }
 
     @Bean
     public DiscountPolicy discountPolicy(){
+        System.out.println("할인정책 등록");
         return new FixDiscountPolicy();
 //        return new RateDiscountPolicy();
     }
 
     @Bean
     public MemberService memberService(){
+        System.out.println("memberService 등록");
         return new MemberServiceImpl(memberRepository());
     }
 
     @Bean
     public OrderService orderService(){
+        System.out.println("orderService 등록");
         return new OrderServiceImpl(memberRepository(), discountPolicy());
     }
 }

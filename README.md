@@ -469,3 +469,46 @@ public class StatefulService {
 무에서 이런 경우를 종종 보는데, 이로인해 정말 해결하기 어려운 큰 문제들이 터진다.(몇년에 한번씩 꼭 만난다.)
 
 진짜 공유필드는 조심해야 한다! 스프링 빈은 항상 무상태(stateless)로 설계하자.
+
+
+
+### AppConfig 싱글톤 확인
+
+`memberService`빈을 만드는 코드를 보면 memberRepository() 를 호출한다. 
+
+* 이 메서드를 호출하면 new MemoryMemberRepository() 를 호출한다.
+
+orderService 빈을 만드는 코드도 동일하게 memberRepository() 를 호출한다.
+
+* 이 메서드를 호출하면 new MemoryMemberRepository() 를 호출한다.
+
+결과적으로 각각 다른 2개의 MemoryMemberRepository 가 생성되면서 싱글톤이 깨지는 것 처럼 보인다.
+
+확인해보면 memberRepository 인스턴스는 모두 같은 인스턴스가 공유되어 사용된다. -> 싱글톤 보장
+
+```java
+@Test
+void configurationDeep() {
+    ApplicationContext ac = new AnnotationConfigApplicationContext(AppConfig.class);
+    // AppConfig도 스프링 빈으로 등록된다.
+    AppConfig bean = ac.getBean(AppConfig.class);
+    // 출력: bean = class hello.core.AppConfig$$EnhancerBySpringCGLIB$$6e4766f1
+    System.out.println("bean = " + bean.getClass());
+}
+```
+
+순수한 클래스라면 다음과 같이 출력되어야 한다.`class hello.core.AppConfig`
+-> 예상과는 다르게 클래스 명에 xxxCGLIB가 붙으면서 상당히 복잡해진 것을 볼 수 있다. 이것은 내가 만든 클래스가 아니라 스프링이 `CGLIB`라는 바이트코드 조작 라이브러리를 사용해서 `AppConfig` 클래스를 상속받은 임의의 다른 클래스를 만들고, 그 다른 클래스를 스프링 빈으로 등록한 것이다!
+
+![image-20210110180208868](./dist/appConfig_CGLIB.jpg)
+
+`AppConfig@CGLIB`클래스가 바로 싱글톤이 보장되도록 해준다. 아마도 다음과 같이 바이트 코드를 조작해서 @Bean이 붙은 메서드마다 이미 스프링 빈이 존재하면 존재하는 빈을 반환하고, 스프링 빈이 없으면 생성해서 스프링 빈으로 등록하고 반환하는 코드가 동적으로 만들어진다.
+
+* 참고 AppConfig@CGLIB는 AppConfig의 자식 타입이므로, AppConfig 타입으로 조회 할 수 있다.
+
+@Configuration 을 붙이면 바이트코드를 조작하는 CGLIB 기술을 사용해서 싱글톤을 보장하지만, 만약 @Bean만 적용하면 싱글톤이 보장되지 않는다.
+
+* `AppConfig`가 `CGLIB`기술 없이 순수한 `AppConfig`로 스프링 빈에 등록된 것을 확인할 수 있다.
+* @Bean만 사용해도 스프링 빈으로 등록되지만, 싱글톤을 보장하지 않는다.
+* memberRepository() 처럼 의존관계 주입이 필요해서 메서드를 직접 호출할 때 싱글톤을 보장하지 않는다.
+* **스프링 설정 정보는 항상 @Configuration 을 사용하자.**
