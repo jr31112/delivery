@@ -581,7 +581,7 @@ ApplicationContext ac = new AnnotationConfigApplicationContext(AutoAppConfig.cla
 
 프로젝트 시작 루트, 여기에 `AppConfig` 같은 메인 설정 정보를 두고, `@ComponentScan` 애노테이션을 붙이고, `basePackages` 지정은 생략한다.
 
-하위는 모두 자동으로 컴포넌트 스캔의 대상이 된다. 그리고 프로젝트 메인 설정 정보는 프로젝트를 대표하는 정보이기 때문에 프로젝트 시작 루트 위치에 두는 것이 좋다 생각한다.
+하위는 모두 자동으로 컴포넌트 스캔의 대상이 된다. 그리고 프로젝트 메인 설정 정보는 프로젝트를 대표하는 정보이기 때문에 프로젝트 시작 루트 위치에 두는 것이 좋다.
 
 ## 컴포넌트 스캔 기본 대상
 
@@ -615,3 +615,52 @@ ApplicationContext ac = new AnnotationConfigApplicationContext(AutoAppConfig.cla
 * `ASPECTJ` : AspectJ 패턴 사용(`org.example..*Service+*`)
 * `REGEX` : 정규 표현식(`org\.example\.Default.*`)
 * `CUSTOM` : TypeFilter 이라는 인터페이스를 구현해서 처리(`org.example.MyTypeFilter`)
+
+
+
+## 중복 등록과 충돌
+
+1. 자동 빈 등록 vs 자동 빈 등록
+
+   컴포넌트 스캔에 의해 자동으로 스프링 빈이 등록되는데, 그 이름이 같은 경우 스프링은 오류를 발생시킨다.
+
+   `ConflictingBeanDefinitionException` 예외 발생
+
+2. 수동 빈 등록 vs 자동 빈 등록
+
+  만약 수동 빈 등록과 자동 빈 등록에서 빈 이름이 충돌되면 어떻게 될까?
+
+  ```java
+  @Component
+  public class MemoryMemberRepository implements MemberRepository {
+      
+  }
+  
+  @Configuration
+  @ComponentScan(excludeFilters = @Filter(type = FilterType.ANNOTATION, classes = Configuration.class))
+  public class AutoAppConfig {
+      
+      @Bean(name = "memoryMemberRepository")
+      public MemberRepository memberRepository() {
+          return new MemoryMemberRepository();
+      }
+      
+  }
+  ```
+
+
+  이 경우 수동 빈 등록이 우선권을 가진다.(수동 빈이 자동 빈을 오버라이딩 해버린다.)
+
+  ```bash
+  Overriding bean definition for bean 'memoryMemberRepository' with a different definition: replacing
+  ```
+
+  물론 개발자가 의도적으로 이런 결과를 기대했다면, 자동보다는 수동이 우선권을 가지는 것이 좋다. 하지만 현실은 개발자가 의도적으로 설정해서 이런 결과가 만들어지기 보다는 여러 설정들이 꼬여서 이런 결과가 만들어지는 경우가 대부분이다!
+
+  그래서 최근 스프링 부트에서는 수동 빈 등록과 자동 빈 등록이 충돌나면 오류가 발생하도록 기본 값을 바꾸었다.
+
+  ```bash
+  Consider renaming one of the beans or enabling overriding by setting spring.main.allow-bean-definition-overriding=true
+  ```
+
+  스프링 부트를 실행해보면 위와 같은 오류를 볼 수 있다.
