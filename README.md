@@ -512,3 +512,64 @@ void configurationDeep() {
 * @Bean만 사용해도 스프링 빈으로 등록되지만, 싱글톤을 보장하지 않는다.
 * memberRepository() 처럼 의존관계 주입이 필요해서 메서드를 직접 호출할 때 싱글톤을 보장하지 않는다.
 * **스프링 설정 정보는 항상 @Configuration 을 사용하자.**
+
+# 컴포넌트 스캔 자동화
+
+```java
+@Configuration
+@ComponentScan(excludeFilters = @Filter(type = FilterType.ANNOTATION, classes = Configuration.class))
+public class AutoAppConfig {
+    
+}
+```
+
+> `AppConfig`, `TestConfig` 등 앞서 만들어두었던 설정 정보도 함께 등록되고, 실행되어 버린다. 그래서 `excludeFilters`를 이용해서 설정정보는 컴포넌트 스캔 대상에서 제외했다. 보통 설정 정보를 컴포넌트 스캔 대상에서 제외하지는 않지만, 기존 예제 코드를 최대한 남기고 유지하기 위해서 이 방법을 선택했다.
+>
+> * includeFilters : 컴포넌트 스캔 대상을 추가로 지정한다.
+> * excludeFilters : 컴포넌트 스캔에서 제외할 대상을 지정한다
+
+다음과 같이 `AutoAppconfig`클래스를 만들어 준 후 각 구현체에 `@Component` 어노테이션을 부착하여 스프링 빈으로 등록 될 수 있도록 한다.
+
+이전에 AppConfig에서는 @Bean 으로 직접 설정 정보를 작성했고, 의존관계도 직접 명시했다. 이제는 이런 설정 정보 자체가 없기 때문에, 의존관계 주입도 이 클래스 안에서 해결해야 한다.
+
+* @Autowired 는 의존관계를 자동으로 주입해준다.
+
+```java
+ApplicationContext ac = new AnnotationConfigApplicationContext(AutoAppConfig.class);
+```
+
+기존과 다르게 스프링 컨테이너를 실행 하기 위해서는 `AnnotationConfigApplicationContext`를 사용하며 설정 정보로 `AutoAppConfig`클래스를 넘겨준다.
+
+* 주의 할점!
+  * 현재 고정, 변동 할인 요소가 들어가있으며 이 때문에 충돌이 날 수 있다.(NoUniqueBeanDefinitionException)
+  * 때문에 등록은 한개만 할 수 있도록 하자.
+
+1. `@ComponentScan`
+
+  ![image-20210110220525401](./dist/component.jpg)
+  `@ComponentScan` 은 `@Component` 가 붙은 모든 클래스를 스프링 빈으로 등록한다.
+  이때 스프링 빈의 기본 이름은 클래스명을 사용하되 맨 앞글자만 소문자를 사용한다.
+  빈 이름 기본 전략: `MemberServiceImpl` 클래스 `memberServiceImpl`
+  빈 이름 직접 지정: 만약 스프링 빈의 이름을 직접 지정하고 싶으면
+  `@Component("memberService2")` 이런식으로 이름을 부여하면 된다.
+
+2. `@Autowired` 의존관계 자동 주입
+
+  ![image-20210110220457076](./dist/autowired.jpg)
+  생성자에 `@Autowired` 를 지정하면, 스프링 컨테이너가 자동으로 해당 스프링 빈을 찾아서 주입한다.
+  이때 기본 조회 전략은 타입이 같은 빈을 찾아서 주입한다.
+  `getBean(MemberRepository.class)` 와 동일하다고 이해하면 된다.
+  생성자에 파라미터가 많아도 다 찾아서 자동으로 주입한다.
+
+## 탐색 위치와 기본 스캔 대상
+
+> 모든 자바 클래스를 다 컴포넌트 스캔하면 시간이 오래 걸린다. 그래서  꼭 필요한 위치부터 탐색하도록 시작위치를 지정할 수 있다.
+
+탐색할 패키지의 시작 위치 지정방법
+
+`basePackages` : 탐색할 패키지의 시작 위치를 지정한다. 이 패키지를 포함해서 하위 패키지를 모두 탐색한다.
+
+* basePackages = {"hello.core", "hello.service"} 이렇게 여러 시작 위치를 지정할 수도있다.
+* basePackageClasses : 지정한 클래스의 패키지를 탐색 시작 위치로 지정한다.
+* 만약 지정하지 않으면 @ComponentScan 이 붙은 설정 정보 클래스의 패키지가 시작 위치가 된다.
+
